@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Custom CSS -->
+    <style>
+        .todo-list {
+            margin-top: 20px;
+        }
+        .completed {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">Todo App</h1>
+        <form id="todo-form" class="mt-3">
+            <div class="form-group">
+                <input type="text" id="todo-input" class="form-control" placeholder="Add a new todo" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+        <ul id="todo-list" class="list-group mt-3">
+            <!-- Todo items will be added here -->
+        </ul>
+    </div>
+
+    <!-- Include Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Function to add a new todo item
+        function addTodo() {
+            const todoText = document.getElementById("todo-input").value;
+            if (todoText.trim() === "") {
+                alert("Please enter a todo.");
+                return;
+            }
+
+            const todoList = document.getElementById("todo-list");
+            const todoItem = document.createElement("li");
+            todoItem.className = "list-group-item";
+            todoItem.innerHTML = `
+                <span class="todo-text">${todoText}</span>
+                <button class="btn btn-success btn-sm float-right mark-complete">Mark Complete</button>
+                <button class="btn btn-danger btn-sm float-right delete-todo">Delete</button>
+            `;
+            todoList.appendChild(todoItem);
+
+            // Clear the input field
+            document.getElementById("todo-input").value = "";
+
+            // Save todo to localStorage
+            saveTodoToLocalStorage(todoText, false);
+        }
+
+        // Function to mark a todo as complete
+        function markTodoComplete(todoItem) {
+            const todoText = todoItem.querySelector(".todo-text").textContent;
+            todoItem.querySelector(".todo-text").classList.add("completed");
+            todoItem.querySelector(".mark-complete").disabled = true;
+
+            // Update the status in localStorage
+            updateTodoStatusInLocalStorage(todoText, true);
+        }
+
+        // Function to delete a todo
+        function deleteTodo(todoItem) {
+            const todoText = todoItem.querySelector(".todo-text").textContent;
+            todoItem.remove();
+
+            // Remove todo from localStorage
+            removeTodoFromLocalStorage(todoText);
+        }
+
+        // Function to save a todo to localStorage
+        function saveTodoToLocalStorage(todoText, completed) {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos.push({ text: todoText, completed: completed });
+            localStorage.setItem("todos", JSON.stringify(todos));
+        }
+
+        // Function to update the status of a todo in localStorage
+        function updateTodoStatusInLocalStorage(todoText, completed) {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos = todos.map(todo => {
+                if (todo.text === todoText) {
+                    todo.completed = completed;
+                }
+                return todo;
+            });
+            localStorage.setItem("todos", JSON.stringify(todos));
+        }
+
+        // Function to remove a todo from localStorage
+        function removeTodoFromLocalStorage(todoText) {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos = todos.filter(todo => todo.text !== todoText);
+            localStorage.setItem("todos", JSON.stringify(todos));
+        }
+
+        // Function to load todos from localStorage
+        function loadTodosFromLocalStorage() {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos.forEach(todo => {
+                const todoList = document.getElementById("todo-list");
+                const todoItem = document.createElement("li");
+                todoItem.className = "list-group-item";
+                todoItem.innerHTML = `
+                    <span class="todo-text ${todo.completed ? 'completed' : ''}">${todo.text}</span>
+                    <button class="btn btn-success btn-sm float-right mark-complete">Mark Complete</button>
+                    <button class="btn btn-danger btn-sm float-right delete-todo">Delete</button>
+                `;
+                todoList.appendChild(todoItem);
+                const markCompleteBtn = todoItem.querySelector(".mark-complete");
+                const deleteTodoBtn = todoItem.querySelector(".delete-todo");
+
+                if (todo.completed) {
+                    markCompleteBtn.disabled = true;
+                }
+
+                // Add event listeners for marking complete and deleting todos
+                markCompleteBtn.addEventListener("click", () => markTodoComplete(todoItem));
+                deleteTodoBtn.addEventListener("click", () => deleteTodo(todoItem));
+            });
+        }
+
+        // Load todos from localStorage when the page loads
+        loadTodosFromLocalStorage();
+
+        // Add event listener for the add todo form
+        document.getElementById("todo-form").addEventListener("submit", function (e) {
+            e.preventDefault();
+            addTodo();
+        });
+    </script>
+</body>
+</html>

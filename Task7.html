@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tic Tac Toe</title>
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        .board {
+            display: grid;
+            align-items: center;
+            justify-content: center; /* Center the content horizontally and vertically */
+            grid-template-columns: repeat(3, 50px);
+            grid-gap: 5px;
+            margin: 0 auto; /* Center the board horizontally */
+            width: 200px; /* Set a fixed width for the board */
+        }
+
+        .cell {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 40%;
+            max-width: 400px; /* Set a maximum width for the modal content */
+        }
+
+        .close {
+            color: #888;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        #reset {
+            display: block;
+            margin: 20px auto; /* Center the reset button horizontally */
+        }
+    </style>
+</head>
+<body>
+    <h1>Tic Tac Toe</h1>
+
+    <!-- Player Names Input -->
+    <div id="playerNames">
+        <label for="playerXName">Player X's Name:</label>
+        <input type="text" id="playerXName" placeholder="Player X" required>
+        <br>
+        <label for="playerOName">Player O's Name:</label>
+        <input type="text" id="playerOName" placeholder="Player O" required>
+        <br>
+        <button id="startGame">Start Game</button>
+    </div>
+
+    <div class="board" id="board">
+        <!-- The board cells will be generated dynamically here -->
+    </div>
+    <div id="status"></div>
+    <button id="reset" style="display: none;">Reset</button>
+
+    <!-- Modal Popup -->
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeButton">&times;</span>
+            <p id="modalMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        const playerNamesDiv = document.getElementById('playerNames');
+        const startGameButton = document.getElementById('startGame');
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        const resetButton = document.getElementById('reset');
+        const modal = document.getElementById('myModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeButton = document.getElementById('closeButton');
+        let currentPlayer = 'X';
+        let gameActive = false;
+        let playerXName = '';
+        let playerOName = '';
+        const cells = [];
+
+        function createBoard() {
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-cell', '');
+                cells.push(cell); // Store cells in an array
+                board.appendChild(cell);
+                cell.addEventListener('click', handleClick); // Add click event listener to each cell
+            }
+        }
+
+        function handleStartGame() {
+            playerXName = document.getElementById('playerXName').value || 'Player X';
+            playerOName = document.getElementById('playerOName').value || 'Player O';
+            playerNamesDiv.style.display = 'none';
+            board.style.display = 'grid';
+            createBoard(); // Create the board dynamically
+            resetButton.style.display = 'block';
+            gameActive = true;
+            status.textContent = `${playerXName}'s turn`;
+        }
+
+        function checkWinner() {
+            const winCombos = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ];
+
+            for (const combo of winCombos) {
+                const [a, b, c] = combo;
+                if (cells[a].textContent && cells[a].textContent === cells[b].textContent && cells[a].textContent === cells[c].textContent) {
+                    gameActive = false;
+                    status.textContent = `Player ${currentPlayer} wins!`;
+                    displayModal(`Player ${currentPlayer === 'X' ? playerXName : playerOName}(${currentPlayer}) wins!`);
+                    return;
+                }
+            }
+
+            if (!cells.some(cell => !cell.textContent)) {
+                gameActive = false;
+                status.textContent = "It's a draw!";
+                displayModal("It's a draw!");
+            }
+        }
+
+        function displayModal(message) {
+            modalMessage.textContent = message;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function handleClick() {
+            if (!this.textContent && gameActive) {
+                this.textContent = currentPlayer;
+                checkWinner();
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = currentPlayer === 'X' ? `${playerXName}'s turn` : `${playerOName}'s turn`;
+            }
+        }
+
+        function handleReset() {
+            cells.forEach(cell => cell.textContent = '');
+            currentPlayer = 'X';
+            gameActive = true;
+            status.textContent = `${playerXName}'s turn`;
+        }
+
+        startGameButton.addEventListener('click', handleStartGame);
+        resetButton.addEventListener('click', handleReset);
+        closeButton.addEventListener('click', closeModal);
+    </script>
+</body>
+</html>
